@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { ListRenderItem, FlatList, RefreshControl, TouchableOpacity, Text, StyleSheet, ScrollView } from 'react-native';
 import { useGlobalState, GlobalStateInterface } from "../store/Store";
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import base64 from 'react-native-base64'
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useIsFocused } from "@react-navigation/native";
 import AddButon from "../components/AddButton";
 
@@ -22,17 +21,11 @@ interface Note {
     updated: Date
 }
 
-interface Error {
-    status: string
-}
-
 export default function List({ navigation }: ListProps) {
     const { state, setState } = useGlobalState();
     const isFocused = useIsFocused();
-    const [error, setError] = useState<Partial<Error>>({})
     const [items, setItems] = useState<Partial<Notes>>({})
     const [refreshing, setRefreshing] = useState(false)
-    const [selectedId, setSelectedId] = useState("")
 
     const fetchData = () => {
         setRefreshing(true)
@@ -42,18 +35,27 @@ export default function List({ navigation }: ListProps) {
         fetch("https://notes.seanksmith.me/api/v1/note", {
             headers: requestHeaders
         })
-            .then(res => res.json())
-            .then(
+            .then((res) => {
+                if (res.ok) {
+                    return res.json()
+                } else {
+                    if (res.status === 401) {
+                        throw Error("Invalid username or password")
+                    } else {
+                        console.error(res)
+                        throw Error("An unexpected error has occurred")
+                    }
+                }
+            }).then(
                 (result) => {
                     setRefreshing(false)
-                    setItems(result);
+                    setItems(result)
                 },
                 (error) => {
-                    console.error(error)
                     setRefreshing(false)
-                    setError(error);
+                    navigation.navigate('Login', { error: error.message })
                 }
-            )
+            );
     }
 
     useEffect(() => {
@@ -72,9 +74,7 @@ export default function List({ navigation }: ListProps) {
         )
     }
 
-    if (error.status) {
-        return <Text>Error: {error.status}</Text>
-    } else if (refreshing) {
+    if (refreshing) {
         return <Text>Loading...</Text>
     } else {
         return (

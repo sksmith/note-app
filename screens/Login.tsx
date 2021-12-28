@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { Button, TextInput, View } from 'react-native';
+import { Button, TextInput, View, Text } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useGlobalState, GlobalStateInterface } from "../store/Store";
+import { RouteProp } from "@react-navigation/native";
 
 interface LoginProps {
+    route: RouteProp<any, any>
     navigation: NativeStackNavigationProp<any, any>
 }
 
-export default function Login({ navigation }: LoginProps) {
-
-    const { state, setState } = useGlobalState();
-    const [username, setUsername] = useState("test");
-    const [password, setPassword] = useState("test");
+export default function Login({ route, navigation }: LoginProps) {
+    const { setState } = useGlobalState();
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
 
     const login = () => {
         var state: Partial<GlobalStateInterface> = { username: username, password: password, refreshList: true }
@@ -24,20 +25,22 @@ export default function Login({ navigation }: LoginProps) {
             <TextInput
                 style={{ height: 40 }}
                 placeholder="Username"
-                onChangeText={username => setUsername(username)}
-                value={state.username}
-                defaultValue={"test"}
+                onChangeText={nusername => setUsername(nusername)}
+                value={username}
+                defaultValue="test"
             />
 
             <TextInput
                 style={{ height: 40 }}
                 placeholder="Password"
-                onChangeText={password => setPassword(password)}
-                value={state.password}
-                defaultValue={"test"}
+                onChangeText={npassword => setPassword(npassword)}
+                value={password}
+                defaultValue="test"
             />
 
             <Button title="Login" onPress={login} />
+
+            <Text>{route.params?.error}</Text>
         </View>
     );
 };

@@ -5,9 +5,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import base64 from 'react-native-base64'
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddButon from "../components/AddButton";
+import { RouteProp } from "@react-navigation/native";
 
 interface ListProps {
     navigation: NativeStackNavigationProp<any, any>
+    route: RouteProp<any, any>
 }
 
 interface Note {
@@ -36,18 +38,28 @@ export default function Edit({ route, navigation }: ListProps) {
         fetch("https://notes.seanksmith.me/api/v1/note/" + noteId, {
             headers: requestHeaders
         })
-            .then(res => res.json())
+            .then((res) => {
+                if (res.ok) {
+                    return res.json()
+                } else {
+                    if (res.status === 401) {
+                        throw Error("Invalid username or password")
+                    } else {
+                        console.error(res)
+                        throw Error("An unexpected error has occurred")
+                    }
+                }
+            })
             .then(
                 (result) => {
                     setRefreshing(false)
-                    setNote(result);
+                    setNote(result)
                 },
                 (error) => {
-                    console.error(error)
                     setRefreshing(false)
-                    setError(error);
+                    navigation.navigate('Login', { error: error.message })
                 }
-            )
+            );
     }
 
     const save = () => {
@@ -61,19 +73,27 @@ export default function Edit({ route, navigation }: ListProps) {
             headers: headers,
             body: JSON.stringify(note)
         })
-            .then(res => res.json())
+            .then(res => {
+                if (res.ok) {
+                    return res.json()
+                } else {
+                    if (res.status === 401) {
+                        throw Error("Invalid username or password")
+                    } else {
+                        console.error(res)
+                        throw Error("An unexpected error has occurred")
+                    }
+                }
+            })
             .then(
                 (result) => {
                     var state: Partial<GlobalStateInterface> = { refreshList: true }
                     setState((prev) => ({ ...prev, ...state }));
                     navigation.navigate('List')
-                },
-                (error) => {
-                    console.error(error)
-                    setRefreshing(false)
-                    setError(error);
+                }, (error) => {
+                    navigation.navigate('Login', { error: error.message })
                 }
-            )
+            );
     }
 
     useEffect(() => {
