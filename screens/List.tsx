@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { View, FlatList, RefreshControl, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { ListRenderItem, FlatList, RefreshControl, TouchableOpacity, Text, StyleSheet, ScrollView } from 'react-native';
 import { useGlobalState, GlobalStateInterface } from "../store/Store";
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import base64 from 'react-native-base64'
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useIsFocused } from "@react-navigation/native";
+import AddButon from "../components/AddButton";
 
 interface ListProps {
     navigation: NativeStackNavigationProp<any, any>
@@ -25,10 +27,12 @@ interface Error {
 }
 
 export default function List({ navigation }: ListProps) {
-    const { state } = useGlobalState();
+    const { state, setState } = useGlobalState();
+    const isFocused = useIsFocused();
     const [error, setError] = useState<Partial<Error>>({})
     const [items, setItems] = useState<Partial<Notes>>({})
     const [refreshing, setRefreshing] = useState(false)
+    const [selectedId, setSelectedId] = useState("")
 
     const fetchData = () => {
         setRefreshing(true)
@@ -52,8 +56,20 @@ export default function List({ navigation }: ListProps) {
             )
     }
 
-    const wait = (timeout: number) => {
-        return new Promise(resolve => setTimeout(resolve, timeout));
+    useEffect(() => {
+        if (state.refreshList) {
+            fetchData();
+            var newState: Partial<GlobalStateInterface> = { refreshList: false }
+            setState((prev) => ({ ...prev, ...newState }));
+        }
+    }, [isFocused])
+
+    const renderItem: ListRenderItem<Note> = ({ item }) => {
+        return (
+            <TouchableOpacity style={[styles.item]} onPress={() => navigation.navigate('Edit', { id: item.id })}>
+                <Text style={[styles.title]}>{item.title}</Text>
+            </TouchableOpacity>
+        )
     }
 
     if (error.status) {
@@ -62,11 +78,11 @@ export default function List({ navigation }: ListProps) {
         return <Text>Loading...</Text>
     } else {
         return (
-            <SafeAreaView style={styles.container}>
+            <>
                 <FlatList
-                    contentContainerStyle={styles.scrollView}
                     data={items.notes}
-                    renderItem={({ item }) => <Text>{item.title}</Text>}
+                    renderItem={renderItem}
+                    keyExtractor={(item) => item.id}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
@@ -74,33 +90,20 @@ export default function List({ navigation }: ListProps) {
                         />
                     }
                 />
-                <TouchableOpacity
-                    style={{
-                        borderWidth: 1,
-                        borderColor: 'rgba(0,0,0,0.2)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 70,
-                        position: 'absolute',
-                        bottom: 10,
-                        right: 10,
-                        height: 70,
-                        backgroundColor: '#fff',
-                        borderRadius: 100,
-                    }}
-                >
-                    <Text style={{ fontSize: 48 }}>+</Text>
-                </TouchableOpacity>
-            </SafeAreaView>
+                <AddButon onPress={() => navigation.navigate("Edit")} />
+            </>
         );
     }
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    item: {
+        backgroundColor: "lightblue",
+        padding: 8,
+        marginVertical: 8,
+        marginHorizontal: 16,
     },
-    scrollView: {
-        flex: 1,
+    title: {
+        fontSize: 16,
     },
 });

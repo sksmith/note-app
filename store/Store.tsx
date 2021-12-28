@@ -3,6 +3,7 @@ import React, { createContext, useState, useContext, Dispatch, SetStateAction } 
 export interface GlobalStateInterface {
   username: string;
   password: string;
+  refreshList: boolean;
 }
 
 const GlobalStateContext = createContext({

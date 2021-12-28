@@ -5,6 +5,7 @@ import { GlobalStateProvider } from "./store/Store";
 
 import Login from './screens/Login'
 import List from './screens/List'
+import Edit from './screens/Edit'
 
 const Stack = createNativeStackNavigator();
 
@@ -13,7 +14,6 @@ export default function App() {
     <GlobalStateProvider>
       <NavigationContainer>
         <Stack.Navigator>
-
           <Stack.Screen
             name='Login'
             component={Login}
@@ -22,6 +22,11 @@ export default function App() {
           <Stack.Screen
             name='List'
             component={List}
+            options={{}} />
+
+          <Stack.Screen
+            name='Edit'
+            component={Edit}
             options={{}} />
         </Stack.Navigator>
       </NavigationContainer>
