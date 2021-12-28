@@ -1,12 +1,31 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { GlobalStateProvider } from "./store/Store";
+
+import Login from './screens/Login'
+import List from './screens/List'
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <GlobalStateProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+
+          <Stack.Screen
+            name='Login'
+            component={Login}
+            options={{}} />
+
+          <Stack.Screen
+            name='List'
+            component={List}
+            options={{}} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GlobalStateProvider>
   );
 }
 
